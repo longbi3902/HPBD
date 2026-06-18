@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Happy Birthday My Love</title>
+<style>
+  /* ====== RESET & BASE ====== */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { width: 100%; height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+    /* Bầu trời đêm tím xanh gradient */
+    background: linear-gradient(180deg, #0b0533 0%, #1a0b4e 35%, #2a1065 60%, #3b1a6e 100%);
+    color: #fff;
+    position: relative;
+    user-select: none;
+  }
+
+  /* ====== LAYER STACK ====== */
+  /* Các canvas/layer xếp chồng theo chiều sâu (parallax) */
+  .layer { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #starCanvas      { z-index: 1; }
+  #particleCanvas  { z-index: 2; }
+  #fireworksCanvas { z-index: 3; }
+  #balloonLayer    { z-index: 4; pointer-events: none; }
+  #heartCanvas     { z-index: 5; pointer-events: none; }
+  #petalCanvas     { z-index: 6; pointer-events: none; }
+  /* Nội dung (chữ, hero, gallery, nút) luôn nằm TRÊN mọi hiệu ứng nền */
+
+  /* ====== HERO / CONTENT ====== */
+  .content {
+    position: relative;
+    z-index: 10;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    text-align: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 40px 16px 120px;
+    scrollbar-width: none;
+  }
+  .content::-webkit-scrollbar { display: none; }
+
+  /* Khung kính glassmorphism chứa ảnh đại diện */
+  .hero {
+    margin-top: 24px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 28px;
+    padding: 26px 22px 30px;
+    box-shadow: 0 8px 40px rgba(255, 105, 180, 0.25), inset 0 0 30px rgba(255,255,255,0.06);
+    max-width: 360px;
+    animation: floatHero 6s ease-in-out infinite;
+  }
+  @keyframes floatHero {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(-14px) rotate(0.5deg); }
+  }
+
+  /* Ảnh đại diện lớn với viền phát sáng hồng */
+  .hero-photo {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255, 182, 213, 0.9);
+    box-shadow: 0 0 24px #ff5fa2, 0 0 48px #ff5fa2, 0 0 70px rgba(255,95,162,0.6);
+    animation: glowPulse 2.6s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 22px #ff5fa2, 0 0 44px #ff5fa2; }
+    50%      { box-shadow: 0 0 36px #ff8ec7, 0 0 80px #ff5fa2; }
+  }
+
+  /* ====== HAPPY BIRTHDAY NEON TEXT ====== */
+  .title {
+    margin-top: 30px;
+    font-size: clamp(20px, 6.6vw, 72px);
+    white-space: nowrap;
+    font-weight: 800;
+    letter-spacing: 1px;
+    line-height: 1.15;
+    color: #fff;
+    text-shadow:
+      0 0 6px #fff,
+      0 0 14px #ff6ec7,
+      0 0 28px #ff6ec7,
+      0 0 48px #b14cff,
+      0 0 80px #b14cff;
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+    animation: titleIn 1.4s cubic-bezier(.2,.8,.2,1) 0.4s forwards, neonFlicker 3.5s ease-in-out 2s infinite;
+  }
+  @keyframes titleIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes neonFlicker {
+    0%, 100% { text-shadow: 0 0 6px #fff, 0 0 14px #ff6ec7, 0 0 28px #ff6ec7, 0 0 48px #b14cff, 0 0 80px #b14cff; }
+    48%      { text-shadow: 0 0 6px #fff, 0 0 14px #ff6ec7, 0 0 28px #ff6ec7, 0 0 48px #b14cff, 0 0 80px #b14cff; }
+    50%      { text-shadow: 0 0 4px #fff, 0 0 8px #ff6ec7; }
+    52%      { text-shadow: 0 0 6px #fff, 0 0 14px #ff6ec7, 0 0 28px #ff6ec7, 0 0 48px #b14cff, 0 0 80px #b14cff; }
+  }
+
+  /* ====== TYPING MESSAGE ====== */
+  .message {
+    margin-top: 26px;
+    max-width: min(92vw, 880px);
+    min-height: 240px;
+    font-size: clamp(15px, 3.6vw, 21px);
+    line-height: 1.9;
+    color: #ffe9f4;
+    text-shadow: 0 0 8px rgba(255, 110, 199, 0.5);
+    white-space: pre-wrap;
+  }
+  .message .cursor {
+    display: inline-block;
+    width: 2px; height: 1.1em;
+    background: #ff8ec7;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 0.8s steps(1) infinite;
+    box-shadow: 0 0 8px #ff6ec7;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ====== PHOTO GALLERY (slideshow) ====== */
+  .gallery {
+    margin-top: 36px;
+    position: relative;
+    width: min(96vw, 900px);
+    height: min(700vh, 6000px);
+    aspect-ratio: 16 / 9;
+    border-radius: 22px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 0 30px rgba(177, 76, 255, 0.45);
+    backdrop-filter: blur(6px);
+    background: rgba(255,255,255,0.05);
+  }
+  .gallery img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  .gallery img.active { opacity: 1; }
+  .gallery .nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 42px; height: 42px; border-radius: 50%;
+    border: none; cursor: pointer;
+    background: rgba(0,0,0,0.4);
+    color: #fff; font-size: 22px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    transition: background 0.25s, transform 0.25s;
+  }
+  .gallery .nav:hover { background: rgba(255,95,162,0.7); transform: translateY(-50%) scale(1.1); }
+  .gallery .prev { left: 10px; }
+  .gallery .next { right: 10px; }
+
+  /* ====== SURPRISE BUTTON ====== */
+  .surprise-btn {
+    margin-top: 72px;
+    padding: 16px 34px;
+    font-size: clamp(16px, 4.5vw, 22px);
+    font-weight: 700;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff5fa2, #b14cff);
+    box-shadow: 0 0 22px rgba(255,95,162,0.8), 0 0 44px rgba(177,76,255,0.5);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    animation: btnPulse 2s ease-in-out infinite;
+  }
+  .surprise-btn:hover { transform: scale(1.07); }
+  .surprise-btn:active { transform: scale(0.96); }
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 0 22px rgba(255,95,162,0.8), 0 0 44px rgba(177,76,255,0.5); }
+    50%      { box-shadow: 0 0 34px rgba(255,95,162,1), 0 0 70px rgba(177,76,255,0.8); }
+  }
+
+  /* ====== MUSIC BUTTON ====== */
+  .music-btn {
+    position: fixed; top: 16px; right: 16px; z-index: 20;
+    width: 52px; height: 52px; border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    color: #fff; font-size: 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 18px rgba(255,95,162,0.6);
+    transition: transform 0.25s, background 0.25s;
+  }
+  .music-btn:hover { transform: scale(1.1); background: rgba(255,95,162,0.4); }
+  .music-btn.playing { animation: spin 4s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ====== SURPRISE POPUP ====== */
+  .popup-overlay {
+    position: fixed; inset: 0; z-index: 30;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(10, 2, 30, 0.65);
+    backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s ease;
+    padding: 20px;
+  }
+  .popup-overlay.show { opacity: 1; pointer-events: auto; }
+  .popup {
+    max-width: 460px;
+    padding: 36px 28px;
+    border-radius: 26px;
+    text-align: center;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 0 50px rgba(255,95,162,0.7);
+    transform: scale(0.7);
+    transition: transform 0.5s cubic-bezier(.2,1.4,.4,1);
+  }
+  .popup-overlay.show .popup { transform: scale(1); }
+  .popup h2 { font-size: clamp(22px, 6vw, 34px); margin-bottom: 14px; text-shadow: 0 0 16px #ff6ec7; }
+  .popup p  { font-size: clamp(15px, 4vw, 18px); line-height: 1.7; color: #ffe9f4; }
+  .popup .close {
+    margin-top: 24px; padding: 10px 26px; border: none; border-radius: 40px;
+    background: linear-gradient(135deg, #ff5fa2, #b14cff); color: #fff;
+    font-size: 16px; cursor: pointer; box-shadow: 0 0 18px rgba(255,95,162,0.7);
+  }
+
+  /* ====== ENDING SCENE ====== */
+  .ending {
+    position: fixed; inset: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+    background: radial-gradient(circle at center, rgba(40,10,80,0.4) 0%, rgba(5,2,20,0.96) 70%);
+    opacity: 0; pointer-events: none;
+    transition: opacity 2s ease;
+  }
+  .ending.show { opacity: 1; pointer-events: auto; }
+  .ending h1 {
+    font-size: clamp(24px, 6vw, 48px);
+    font-weight: 800; line-height: 1.4;
+    max-width: 800px;
+    color: #fff;
+    text-shadow: 0 0 10px #fff, 0 0 24px #ff6ec7, 0 0 48px #b14cff;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 2.4s ease;
+  }
+  .ending.show h1 { transform: translateY(0); opacity: 1; }
+  /* Tia sáng điện ảnh quét ngang */
+  .ending::before {
+    content: '';
+    position: absolute; top: 50%; left: -50%;
+    width: 200%; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent);
+    box-shadow: 0 0 40px 10px rgba(255,142,199,0.6);
+    transform: translateY(-50%);
+    opacity: 0;
+  }
+  .ending.show::before { animation: cinemaBeam 3s ease-out 0.5s; }
+  @keyframes cinemaBeam {
+    0%   { opacity: 0; transform: translateY(-50%) scaleX(0.2); }
+    40%  { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-50%) scaleX(1.4); }
+  }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 480px) {
+    .hero-photo { width: 110px; height: 110px; }
+    .hero { margin-top: 10px; padding: 20px 16px; }
+    .content { padding-top: 24px; }
+  }
+
+  /* Hiệu ứng rung nhẹ khi bấm Surprise */
+  .shake { animation: shake 0.6s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-6px, 4px); }
+    40% { transform: translate(6px, -4px); }
+    60% { transform: translate(-4px, 6px); }
+    80% { transform: translate(4px, -2px); }
+  }
+</style>
+</head>
+<body>
+  <!-- ====== CANVAS LAYERS (chiều sâu parallax) ====== -->
+  <canvas id="starCanvas" class="layer"></canvas>
+  <canvas id="particleCanvas" class="layer"></canvas>
+  <canvas id="fireworksCanvas" class="layer"></canvas>
+  <div id="balloonLayer" class="layer"></div>
+  <canvas id="heartCanvas" class="layer"></canvas>
+  <canvas id="petalCanvas" class="layer"></canvas>
+
+  <!-- ====== NÚT NHẠC ====== -->
+  <button id="musicBtn" class="music-btn" title="Bật/Tắt nhạc">&#9835;</button>
+
+  <!-- ====== NỘI DUNG CHÍNH ====== -->
+  <main class="content">
+    <!-- Hero: khung kính + ảnh đại diện -->
+    <section class="hero">
+      <img id="heroPhoto" class="hero-photo" src="images/photo1.jpg" alt="My Love" />
+    </section>
+
+    <!-- Tiêu đề neon -->
+    <h1 class="title">HAPPY BIRTHDAY MY LOVE</h1>
+
+    <!-- Lời chúc gõ từng chữ -->
+    <div id="message" class="message"></div>
+
+    <!-- Photo gallery slideshow -->
+    <div id="gallery" class="gallery">
+      <button class="nav prev" id="prevBtn">&#10094;</button>
+      <button class="nav next" id="nextBtn">&#10095;</button>
+    </div>
+
+    <!-- Nút bất ngờ -->
+    <button id="surpriseBtn" class="surprise-btn">Nhấn vào đây nhé</button>
+  </main>
+
+  <!-- ====== POPUP LỜI YÊU THƯƠNG ====== -->
+  <div id="popupOverlay" class="popup-overlay">
+    <div class="popup">
+      <h2>Gửi em yêu &#10084;&#65039;</h2>
+      <p>Cảm ơn em đã luôn ở bên anh. Mỗi ngày có em là một ngày anh thấy mình thật may mắn. Chúc em tuổi mới thật nhiều sức khoẻ, niềm vui và mãi xinh đẹp như hôm nay. Anh yêu em rất nhiều!</p>
+      <button class="close" id="closePopup">Yêu anh nhất &#128525;</button>
+    </div>
+  </div>
+
+  <!-- ====== ENDING SCENE ====== -->
+  <div id="ending" class="ending">
+    <h1>Cảm ơn em vì đã xuất hiện trong cuộc đời anh &#10084;&#65039;</h1>
+  </div>
+
+<script>
+/* =====================================================================
+   CẤU HÌNH CHUNG
+   ===================================================================== */
+// Mảng ảnh người yêu (đặt ảnh thật vào thư mục images/)
+const girlfriendPhotos = [
+  "images/photo1.jpg",
+  "images/photo2.jpg",
+  "images/photo3.jpg",
+  "images/photo4.jpg",
+  "images/photo5.jpg",
+  "images/photo6.jpg",
+  "images/photo7.jpg",
+  "images/photo8.jpg"
+];
+
+// Tiện ích random
+const rand = (min, max) => Math.random() * (max - min) + min;
+const randInt = (min, max) => Math.floor(rand(min, max + 1));
+const pick = arr => arr[randInt(0, arr.length - 1)];
+
+// Trạng thái toàn cục
+let W = window.innerWidth;
+let H = window.innerHeight;
+let fireworkIntensity = 1; // tăng khi bấm Surprise
+
+/* =====================================================================
+   HỖ TRỢ CANVAS: resize đồng bộ tất cả canvas theo devicePixelRatio
+   ===================================================================== */
+const allCanvases = [];
+function setupCanvas(canvas) {
+  const ctx = canvas.getContext('2d');
+  allCanvases.push({ canvas, ctx });
+  return ctx;
+}
+function resizeAll() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  // Giới hạn DPR ở 1.5 để giảm số pixel phải vẽ (mượt hơn trên màn retina/điện thoại)
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+  allCanvases.forEach(({ canvas, ctx }) => {
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  });
+}
+
+/* =====================================================================
+   SPRITE CACHE - vẽ sẵn các hình phát sáng MỘT LẦN rồi drawImage lại.
+   Đây là chìa khoá tối ưu: shadowBlur rất nặng nếu gọi mỗi khung hình
+   cho hàng trăm phần tử, nên ta thay bằng ảnh bitmap dựng sẵn.
+   ===================================================================== */
+// Đốm sáng tròn (radial gradient) dùng cho sao, hạt, tia pháo hoa
+function makeGlowSprite(size, inner, mid) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  g.addColorStop(0, inner);
+  g.addColorStop(0.35, mid);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, size, size);
+  return c;
+}
+// Trái tim phát sáng dựng sẵn theo màu
+function makeHeartSprite(size, color) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+  const s = size / 32;
+  x.translate(size / 2, size / 2 - size * 0.06);
+  x.scale(s, s);
+  x.shadowBlur = 12; x.shadowColor = color;
+  x.beginPath();
+  x.moveTo(0, 4);
+  x.bezierCurveTo(0, 1, -3, -2, -6, -2);
+  x.bezierCurveTo(-11, -2, -11, 4, -11, 4);
+  x.bezierCurveTo(-11, 8, -6, 12, 0, 16);
+  x.bezierCurveTo(6, 12, 11, 8, 11, 4);
+  x.bezierCurveTo(11, 4, 11, -2, 6, -2);
+  x.bezierCurveTo(3, -2, 0, 1, 0, 4);
+  x.closePath();
+  x.fillStyle = color;
+  x.fill();
+  return c;
+}
+// Cánh hoa hồng dựng sẵn theo màu
+function makePetalSprite(size, color) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const x = c.getContext('2d');
+  x.translate(size / 2, size / 2);
+  x.fillStyle = color;
+  x.beginPath();
+  x.ellipse(0, 0, size * 0.28, size * 0.46, 0, 0, Math.PI * 2);
+  x.fill();
+  return c;
+}
+
+const starSprite = makeGlowSprite(24, 'rgba(255,255,255,1)', 'rgba(190,210,255,0.5)');
+const fwColorList = ['#ff5fa2', '#b14cff', '#5fd0ff', '#ffd75f', '#7dff9b', '#ff6e6e', '#ffffff'];
+const fwSpriteMap = {};   // sprite tia pháo hoa theo màu
+fwColorList.forEach(col => { fwSpriteMap[col] = makeGlowSprite(20, col, col); });
+const heartColorList = ['#ff5fa2', '#ff8ec7', '#ff3b7f', '#ffffff', '#ffd0e4'];
+const heartSpriteMap = {};
+heartColorList.forEach(col => { heartSpriteMap[col] = makeHeartSprite(64, col); });
+const petalColorList = ['#ff5fa2', '#ff79b0', '#e23b7d', '#ff95c0'];
+const petalSpriteMap = {};
+petalColorList.forEach(col => { petalSpriteMap[col] = makePetalSprite(40, col); });
+const particleHueList = [300, 320, 280, 260, 200];
+const particleSpriteMap = {};
+particleHueList.forEach(h => {
+  particleSpriteMap[h] = makeGlowSprite(24, `hsla(${h},90%,80%,0.95)`, `hsla(${h},90%,68%,0.45)`);
+});
+
+/* =====================================================================
+   1. STARFIELD - hàng trăm ngôi sao lấp lánh + parallax
+   ===================================================================== */
+const starCtx = setupCanvas(document.getElementById('starCanvas'));
+let stars = [];
+function initStars() {
+  stars = [];
+  // Mật độ giảm + có trần để máy yếu không quá tải
+  const count = Math.min(Math.floor((W * H) / 6000), 260);
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: rand(0.6, 2.2),
+      depth: rand(0.2, 1),          // độ sâu cho parallax
+      twinkle: Math.random() * Math.PI * 2,
+      twSpeed: rand(0.015, 0.05)
+    });
+  }
+}
+let parallaxX = 0, parallaxY = 0;     // offset parallax theo chuột/cảm biến
+function drawStars() {
+  starCtx.clearRect(0, 0, W, H);
+  for (const s of stars) {
+    s.twinkle += s.twSpeed;
+    const alpha = 0.4 + Math.abs(Math.sin(s.twinkle)) * 0.6;
+    const px = s.x + parallaxX * s.depth * 30;
+    const py = s.y + parallaxY * s.depth * 30;
+    const sz = s.r * 5;
+    starCtx.globalAlpha = alpha;
+    starCtx.drawImage(starSprite, px - sz / 2, py - sz / 2, sz, sz);
+  }
+  starCtx.globalAlpha = 1;
+}
+
+/* =====================================================================
+   2. PARTICLES - hạt sáng trôi nhẹ (chiều sâu khác cho parallax)
+   ===================================================================== */
+const partCtx = setupCanvas(document.getElementById('particleCanvas'));
+let particles = [];
+function initParticles() {
+  particles = [];
+  const count = Math.min(Math.floor((W * H) / 26000), 70);
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: rand(1.5, 4),
+      depth: rand(0.4, 1.2),
+      vx: rand(-0.15, 0.15),
+      vy: rand(-0.25, -0.05),
+      hue: pick(particleHueList),
+      alpha: rand(0.3, 0.8)
+    });
+  }
+}
+function drawParticles() {
+  partCtx.clearRect(0, 0, W, H);
+  for (const p of particles) {
+    p.x += p.vx; p.y += p.vy;
+    if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+    if (p.x < -10) p.x = W + 10;
+    if (p.x > W + 10) p.x = -10;
+    const px = p.x + parallaxX * p.depth * 18;
+    const py = p.y + parallaxY * p.depth * 18;
+    const sz = p.r * 4;
+    partCtx.globalAlpha = p.alpha;
+    partCtx.drawImage(particleSpriteMap[p.hue], px - sz / 2, py - sz / 2, sz, sz);
+  }
+  partCtx.globalAlpha = 1;
+}
+
+/* =====================================================================
+   3. FIREWORKS - pháo hoa nhiều màu, phát sáng, hạt rơi xuống
+   ===================================================================== */
+const fwCtx = setupCanvas(document.getElementById('fireworksCanvas'));
+let rockets = [];
+let sparks = [];
+const fwColors = ['#ff5fa2', '#b14cff', '#5fd0ff', '#ffd75f', '#7dff9b', '#ff6e6e', '#ffffff'];
+
+function launchRocket(targetX, targetY) {
+  const startX = targetX ?? rand(W * 0.15, W * 0.85);
+  const sy = H;
+  const ty = targetY ?? rand(H * 0.15, H * 0.5);
+  const angle = -Math.PI / 2 + rand(-0.2, 0.2);
+  const speed = rand(8, 12);
+  rockets.push({
+    x: startX, y: sy,
+    vx: Math.cos(angle) * speed * 0.3,
+    vy: -(sy - ty) / 22,        // vận tốc đủ để chạm gần đỉnh mong muốn
+    targetY: ty,
+    color: pick(fwColors)
+  });
+}
+
+function explode(x, y, color) {
+  if (sparks.length > 1400) return; // trần để không tụt fps khi pháo hoa dồn dập
+  const n = randInt(36, 60);
+  for (let i = 0; i < n; i++) {
+    const ang = (Math.PI * 2 * i) / n + rand(-0.1, 0.1);
+    const sp = rand(2, 6.5);
+    sparks.push({
+      x, y,
+      vx: Math.cos(ang) * sp,
+      vy: Math.sin(ang) * sp,
+      life: 1,
+      decay: rand(0.008, 0.02),
+      color: Math.random() < 0.3 ? '#ffffff' : color,
+      size: rand(1.5, 3)
+    });
+  }
+}
+
+function drawFireworks() {
+  // hiệu ứng vệt mờ (motion trail) thay vì xoá hẳn
+  fwCtx.globalCompositeOperation = 'source-over';
+  fwCtx.fillStyle = 'rgba(11, 5, 40, 0.22)';
+  fwCtx.fillRect(0, 0, W, H);
+  fwCtx.globalCompositeOperation = 'lighter';
+
+  // rockets bay lên (dùng sprite phát sáng, không shadowBlur)
+  for (let i = rockets.length - 1; i >= 0; i--) {
+    const r = rockets[i];
+    r.x += r.vx; r.y += r.vy; r.vy += 0.12; // trọng lực nhẹ
+    const sp = fwSpriteMap[r.color] || fwSpriteMap['#ffffff'];
+    fwCtx.drawImage(sp, r.x - 8, r.y - 8, 16, 16);
+    if (r.vy >= -1 || r.y <= r.targetY) {
+      explode(r.x, r.y, r.color);
+      rockets.splice(i, 1);
+    }
+  }
+
+  // sparks nổ và rơi xuống
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const s = sparks[i];
+    s.x += s.vx; s.y += s.vy;
+    s.vy += 0.045;          // trọng lực -> hạt rơi xuống
+    s.vx *= 0.985; s.vy *= 0.985;
+    s.life -= s.decay;
+    if (s.life <= 0) { sparks.splice(i, 1); continue; }
+    const sp = fwSpriteMap[s.color] || fwSpriteMap['#ffffff'];
+    const sz = s.size * s.life * 5;
+    fwCtx.globalAlpha = Math.max(s.life, 0);
+    fwCtx.drawImage(sp, s.x - sz / 2, s.y - sz / 2, sz, sz);
+  }
+  fwCtx.globalAlpha = 1;
+  fwCtx.globalCompositeOperation = 'source-over';
+}
+
+// tự động bắn pháo hoa định kỳ
+let fwTimer = 0;
+function autoFireworks() {
+  fwTimer++;
+  const threshold = Math.max(8, 45 / fireworkIntensity);
+  if (fwTimer >= threshold) {
+    fwTimer = 0;
+    const bursts = Math.round(fireworkIntensity);
+    for (let i = 0; i < bursts; i++) launchRocket();
+  }
+}
+
+/* =====================================================================
+   4 & 5. BALLOONS + PHOTO BALLOONS (DOM-based để gắn ảnh tròn)
+   ===================================================================== */
+const balloonLayer = document.getElementById('balloonLayer');
+const balloonColors = ['#ff5fa2', '#b14cff', '#5fd0ff', '#ffd75f', '#7dff9b', '#ff8ec7'];
+const loadedPhotos = []; // ảnh load thành công để dùng cho photo balloon
+
+// kiểm tra ảnh nào load được (tránh vỡ ảnh)
+girlfriendPhotos.forEach(src => {
+  const img = new Image();
+  img.onload = () => loadedPhotos.push(src);
+  img.src = src;
+});
+
+function spawnBalloon(isPhoto) {
+  const el = document.createElement('div');
+  const size = isPhoto ? rand(110, 150) : rand(45, 85);
+  const color = pick(balloonColors);
+  const startX = rand(0, W - size);
+  const duration = rand(11, 20);
+  const sway = rand(20, 60);
+
+  // Lớp NGOÀI: chỉ bay lên (translateY) -> chạy trên GPU, không reflow
+  el.style.position = 'absolute';
+  el.style.left = startX + 'px';
+  el.style.bottom = (-size * 1.6) + 'px';
+  el.style.width = size + 'px';
+  el.style.height = (size * 1.2) + 'px';
+  el.style.willChange = 'transform';
+  el.style.animation = `balloonRise ${duration}s linear forwards`;
+
+  // Lớp TRONG: đung đưa theo gió (translateX) tách biệt khỏi rise
+  const inner = document.createElement('div');
+  inner.style.setProperty('--sway', sway + 'px');
+  inner.style.willChange = 'transform';
+  inner.style.animation = `balloonSway ${rand(3,5)}s ease-in-out infinite alternate`;
+
+  if (isPhoto && loadedPhotos.length) {
+    // Bóng trong suốt nhẹ chứa ảnh tròn + viền phát quang
+    const photo = pick(loadedPhotos);
+    inner.innerHTML = `
+      <div class="b-body photo" style="
+        width:${size}px;height:${size}px;border-radius:50%;
+        background:
+          radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), rgba(255,255,255,0.05) 45%),
+          ${hexA(color, 0.28)};
+        border:2px solid ${hexA(color,0.5)};
+        box-shadow:0 0 22px ${hexA(color,0.8)}, inset 0 0 18px rgba(255,255,255,0.25);
+        display:flex;align-items:center;justify-content:center;">
+        <img src="${photo}" style="
+          width:${size*0.72}px;height:${size*0.72}px;border-radius:50%;object-fit:cover;
+          border:3px solid rgba(255,255,255,0.9);
+          box-shadow:0 0 16px #fff, 0 0 28px ${color};" />
+      </div>
+      <div class="b-string"></div>`;
+  } else {
+    // Bóng thường có highlight + dây
+    inner.innerHTML = `
+      <div class="b-body" style="
+        width:${size}px;height:${size*1.18}px;border-radius:50% 50% 48% 48%;
+        background:
+          radial-gradient(circle at 32% 26%, rgba(255,255,255,0.85), ${color} 55%, ${shade(color,-25)} 100%);
+        box-shadow:inset -6px -8px 14px rgba(0,0,0,0.18), 0 0 16px ${hexA(color,0.5)};">
+      </div>
+      <div class="b-string"></div>`;
+  }
+  el.appendChild(inner);
+  balloonLayer.appendChild(el);
+  // tự xoá khi animation rise kết thúc
+  setTimeout(() => el.remove(), duration * 1000 + 500);
+}
+
+// chuyển hex -> rgba
+function hexA(hex, a) {
+  const c = hex.replace('#', '');
+  const n = parseInt(c, 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return `rgba(${r},${g},${b},${a})`;
+}
+// làm tối/sáng màu hex
+function shade(hex, percent) {
+  const c = hex.replace('#', '');
+  const n = parseInt(c, 16);
+  let r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  r = Math.max(0, Math.min(255, r + percent));
+  g = Math.max(0, Math.min(255, g + percent));
+  b = Math.max(0, Math.min(255, b + percent));
+  return `rgb(${r},${g},${b})`;
+}
+
+// chèn keyframe + style cho bóng (dây treo)
+(function injectBalloonCSS() {
+  const style = document.createElement('style');
+  style.textContent = `
+    #balloonLayer .b-body { position: relative; }
+    #balloonLayer .b-string {
+      width: 1.5px; height: 55px; margin: 0 auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.05));
+    }
+    @keyframes balloonRise {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(calc(-100vh - 260px)); }
+    }
+    /* Đung đưa bằng transform (GPU) thay vì margin để tránh reflow gây giật */
+    @keyframes balloonSway {
+      from { transform: translateX(calc(var(--sway) * -1)); }
+      to   { transform: translateX(var(--sway)); }
+    }`;
+  document.head.appendChild(style);
+})();
+
+// định kỳ tạo bóng bay
+function balloonLoop() {
+  spawnBalloon(false);
+  if (Math.random() < 0.45) spawnBalloon(false);
+  // luôn có ít nhất 1 bóng chứa ảnh mỗi nhịp + cơ hội ra thêm quả nữa
+  if (loadedPhotos.length) {
+    spawnBalloon(true);
+    if (Math.random() < 0.5) spawnBalloon(true);
+  }
+}
+
+/* =====================================================================
+   6. HEARTS - tim bay khắp màn hình + tim khi click/touch
+   ===================================================================== */
+const heartCtx = setupCanvas(document.getElementById('heartCanvas'));
+let hearts = [];
+const MAX_HEARTS = 600;   // trần số tim để giữ mượt khi bùng nổ
+function spawnHeart(x, y, burst) {
+  if (hearts.length >= MAX_HEARTS) return;
+  hearts.push({
+    x: x ?? rand(0, W),
+    y: y ?? H + 20,
+    vx: burst ? rand(-5, 5) : rand(-0.6, 0.6),
+    vy: burst ? rand(-9, -2) : rand(-1.6, -0.6),
+    size: rand(12, 26),
+    color: pick(heartColorList),
+    life: 1,
+    decay: rand(0.004, 0.012),
+    rot: rand(-0.04, 0.04),
+    angle: 0
+  });
+}
+function drawHearts() {
+  heartCtx.clearRect(0, 0, W, H);
+  for (let i = hearts.length - 1; i >= 0; i--) {
+    const h = hearts[i];
+    h.x += h.vx; h.y += h.vy;
+    h.vy += 0.02; // chút trọng lực cho tim burst rơi xuống
+    h.life -= h.decay;
+    h.angle += h.rot;
+    if (h.life <= 0 || h.y < -40) { hearts.splice(i, 1); continue; }
+    const sp = heartSpriteMap[h.color];
+    const sz = h.size * 2;
+    heartCtx.globalAlpha = Math.max(h.life, 0);
+    if (h.angle) {
+      heartCtx.save();
+      heartCtx.translate(h.x, h.y);
+      heartCtx.rotate(h.angle);
+      heartCtx.drawImage(sp, -sz / 2, -sz / 2, sz, sz);
+      heartCtx.restore();
+    } else {
+      heartCtx.drawImage(sp, h.x - sz / 2, h.y - sz / 2, sz, sz);
+    }
+  }
+  heartCtx.globalAlpha = 1;
+  // thỉnh thoảng sinh tim bay nền
+  if (Math.random() < 0.06) spawnHeart();
+}
+
+/* =====================================================================
+   ROSE PETALS - mưa cánh hoa hồng (kích hoạt khi Surprise)
+   ===================================================================== */
+const petalCtx = setupCanvas(document.getElementById('petalCanvas'));
+let petals = [];
+let petalRainUntil = 0;
+function spawnPetal() {
+  if (petals.length >= 220) return;
+  petals.push({
+    x: rand(0, W), y: rand(-40, -10),
+    vy: rand(1.2, 3),
+    vx: rand(-1, 1),
+    size: rand(16, 32),
+    angle: rand(0, Math.PI * 2),
+    spin: rand(-0.05, 0.05),
+    color: pick(petalColorList)
+  });
+}
+function drawPetals() {
+  petalCtx.clearRect(0, 0, W, H);
+  if (performance.now() < petalRainUntil && Math.random() < 0.6) spawnPetal();
+  for (let i = petals.length - 1; i >= 0; i--) {
+    const p = petals[i];
+    p.y += p.vy; p.x += p.vx + Math.sin(p.y / 40) * 0.5;
+    p.angle += p.spin;
+    if (p.y > H + 30) { petals.splice(i, 1); continue; }
+    const sp = petalSpriteMap[p.color];
+    petalCtx.save();
+    petalCtx.translate(p.x, p.y);
+    petalCtx.rotate(p.angle);
+    petalCtx.drawImage(sp, -p.size / 2, -p.size / 2, p.size, p.size);
+    petalCtx.restore();
+  }
+}
+
+/* =====================================================================
+   7. TYPING MESSAGE - gõ từng ký tự, có icon trái tim xen kẽ
+   ===================================================================== */
+const messageEl = document.getElementById('message');
+const loveMessage =
+`Gửi em yêu của anh 💖
+Cảm ơn em đã đến bên anh, đã cười, đã thương  💕
+Cảm ơn em vì những ngày bình thường nhất, em vẫn khiến anh thấy mình may mắn nhất thế gian 🌷
+Mỗi khoảnh khắc bên em đều là kỷ niệm, mỗi ánh mắt của em là cả một bầu trời sao ✨
+Chúc em tuổi mới rạng rỡ, bình an và thật nhiều hạnh phúc 🌸 Mong em luôn cười tươi như đoá hoa anh yêu nhất 🌹`
+
+function typeMessage() {
+  let i = 0;
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  function step() {
+    if (i <= loveMessage.length) {
+      messageEl.textContent = loveMessage.slice(0, i);
+      messageEl.appendChild(cursor);
+      i++;
+      // tốc độ gõ thay đổi nhẹ cho tự nhiên
+      setTimeout(step, loveMessage[i - 1] === '\n' ? 240 : rand(35, 75));
+    }
+  }
+  step();
+}
+
+/* =====================================================================
+   10. PHOTO GALLERY - slideshow tự động + fade + next/prev
+   ===================================================================== */
+const galleryEl = document.getElementById('gallery');
+let galleryImgs = [];
+let galleryIndex = 0;
+let galleryTimer = null;
+function buildGallery() {
+  // Nếu chưa có ảnh nào load được -> ẩn gallery cho gọn
+  if (!loadedPhotos.length) { galleryEl.style.display = 'none'; return; }
+  const sources = loadedPhotos;
+  sources.forEach((src, idx) => {
+    const img = document.createElement('img');
+    img.src = src;
+    if (idx === 0) img.classList.add('active');
+    galleryEl.insertBefore(img, galleryEl.querySelector('.prev'));
+    galleryImgs.push(img);
+  });
+  if (galleryImgs.length > 1) startGalleryAuto();
+}
+function showGallery(idx) {
+  if (!galleryImgs.length) return;
+  galleryImgs[galleryIndex].classList.remove('active');
+  galleryIndex = (idx + galleryImgs.length) % galleryImgs.length;
+  galleryImgs[galleryIndex].classList.add('active');
+}
+function startGalleryAuto() {
+  clearInterval(galleryTimer);
+  galleryTimer = setInterval(() => showGallery(galleryIndex + 1), 3500);
+}
+document.getElementById('prevBtn').addEventListener('click', () => { showGallery(galleryIndex - 1); startGalleryAuto(); });
+document.getElementById('nextBtn').addEventListener('click', () => { showGallery(galleryIndex + 1); startGalleryAuto(); });
+
+/* =====================================================================
+   9. MUSIC - bật/tắt, tự phát sau tương tác (WebAudio melody dự phòng)
+   ===================================================================== */
+const musicBtn = document.getElementById('musicBtn');
+let audioCtx = null, musicPlaying = false, musicNodes = [];
+// Giai điệu "Happy Birthday" đơn giản bằng WebAudio (không cần file ngoài)
+const hbdMelody = [
+  [264,0.5],[264,0.5],[297,1],[264,1],[352,1],[330,2],
+  [264,0.5],[264,0.5],[297,1],[264,1],[396,1],[352,2],
+  [264,0.5],[264,0.5],[528,1],[440,1],[352,1],[330,1],[297,1],
+  [466,0.5],[466,0.5],[440,1],[352,1],[396,1],[352,2]
+];
+let melodyTimeout = null;
+function playMelody() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function schedule() {
+    musicNodes = [];
+    let time = audioCtx.currentTime + 0.1;
+    hbdMelody.forEach(([freq, beat]) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const dur = beat * 0.42;
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.18, time + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + dur);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(time); osc.stop(time + dur);
+      musicNodes.push(osc);
+      time += dur;
+    });
+    const total = (time - audioCtx.currentTime) * 1000;
+    melodyTimeout = setTimeout(() => { if (musicPlaying) schedule(); }, total + 600);
+  }
+  schedule();
+}
+function startMusic() {
+  if (musicPlaying) return;
+  musicPlaying = true;
+  musicBtn.classList.add('playing');
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  playMelody();
+}
+function stopMusic() {
+  musicPlaying = false;
+  musicBtn.classList.remove('playing');
+  clearTimeout(melodyTimeout);
+  musicNodes.forEach(o => { try { o.stop(); } catch (e) {} });
+}
+musicBtn.addEventListener('click', () => musicPlaying ? stopMusic() : startMusic());
+
+/* =====================================================================
+   8. HEART ON CLICK / TOUCH
+   ===================================================================== */
+function interactionHearts(x, y) {
+  for (let i = 0; i < 12; i++) spawnHeart(x, y, true);
+}
+window.addEventListener('click', e => interactionHearts(e.clientX, e.clientY));
+window.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  if (t) interactionHearts(t.clientX, t.clientY);
+}, { passive: true });
+
+// tự phát nhạc sau tương tác đầu tiên
+let firstInteract = false;
+function onFirstInteract() {
+  if (firstInteract) return;
+  firstInteract = true;
+  startMusic();
+}
+window.addEventListener('pointerdown', onFirstInteract, { once: true });
+
+/* =====================================================================
+   PARALLAX - theo chuột (desktop) & gyroscope (mobile)
+   ===================================================================== */
+window.addEventListener('mousemove', e => {
+  parallaxX = (e.clientX / W - 0.5) * 2;
+  parallaxY = (e.clientY / H - 0.5) * 2;
+});
+window.addEventListener('deviceorientation', e => {
+  if (e.gamma != null) {
+    parallaxX = Math.max(-1, Math.min(1, e.gamma / 30));
+    parallaxY = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
+  }
+}, true);
+
+/* =====================================================================
+   11. SURPRISE BUTTON - bùng nổ tim, pháo hoa mạnh, popup, rung, mưa hoa
+   ===================================================================== */
+const surpriseBtn = document.getElementById('surpriseBtn');
+const popupOverlay = document.getElementById('popupOverlay');
+surpriseBtn.addEventListener('click', () => {
+  // bùng nổ trái tim (theo đợt + có trần MAX_HEARTS để luôn mượt)
+  let bursts = 0;
+  const heartBurst = setInterval(() => {
+    for (let i = 0; i < 70; i++) spawnHeart(rand(0, W), rand(H * 0.3, H), true);
+    if (++bursts > 8) clearInterval(heartBurst);
+  }, 130);
+
+  // pháo hoa tăng mạnh trong 8 giây
+  fireworkIntensity = 4;
+  for (let i = 0; i < 6; i++) launchRocket();
+  setTimeout(() => { fireworkIntensity = 1; }, 8000);
+
+  // mưa cánh hoa hồng 10 giây
+  petalRainUntil = performance.now() + 10000;
+
+  // rung nhẹ
+  document.body.classList.add('shake');
+  setTimeout(() => document.body.classList.remove('shake'), 600);
+  if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+
+  // bắt đầu nhạc nếu chưa
+  startMusic();
+
+  // sau một lúc -> ending scene
+  setTimeout(showEnding, 6000);
+});
+document.getElementById('closePopup').addEventListener('click', () => {
+  popupOverlay.classList.remove('show');
+});
+
+/* =====================================================================
+   12. ENDING SCENE - sau 30s hoặc khi Surprise
+   ===================================================================== */
+const endingEl = document.getElementById('ending');
+let endingShown = false;
+function showEnding() {
+  if (endingShown) return;
+  endingShown = true;
+  endingEl.classList.add('show');
+  // pháo hoa ăn mừng cuối
+  fireworkIntensity = 3;
+  // ẩn sau 9s để người dùng tận hưởng tiếp
+  setTimeout(() => {
+    endingEl.classList.remove('show');
+    fireworkIntensity = 1;
+  }, 9000);
+}
+setTimeout(showEnding, 30000); // tự hiện sau 30 giây
+
+/* =====================================================================
+   HERO PHOTO - dùng ảnh load được đầu tiên (fallback giữ nguyên src)
+   ===================================================================== */
+function setHeroPhoto() {
+  const heroPhoto = document.getElementById('heroPhoto');
+  if (loadedPhotos.length) {
+    heroPhoto.src = loadedPhotos[0];
+  } else {
+    // Fallback đẹp khi chưa có ảnh: gradient + icon trái tim
+    heroPhoto.removeAttribute('src');
+    heroPhoto.style.background = 'radial-gradient(circle at 35% 30%, #ff8ec7, #b14cff)';
+    heroPhoto.style.display = 'flex';
+    heroPhoto.alt = '';
+    const heart = document.createElement('div');
+    heart.textContent = '\u2764\uFE0F';
+    heart.style.cssText = 'position:absolute;font-size:70px;line-height:0;left:50%;top:50%;transform:translate(-50%,-50%);';
+    heroPhoto.parentElement.style.position = 'relative';
+    heroPhoto.parentElement.appendChild(heart);
+  }
+}
+
+/* =====================================================================
+   MAIN LOOP - một requestAnimationFrame duy nhất (mượt 60fps)
+   ===================================================================== */
+function loop() {
+  drawStars();
+  drawParticles();
+  autoFireworks();
+  drawFireworks();
+  drawHearts();
+  drawPetals();
+  requestAnimationFrame(loop);
+}
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+function init() {
+  resizeAll();
+  initStars();
+  initParticles();
+  typeMessage();
+  // chờ một nhịp cho ảnh kịp kiểm tra load, rồi dựng gallery + hero
+  setTimeout(() => { buildGallery(); setHeroPhoto(); }, 600);
+  // sinh bóng bay định kỳ
+  setInterval(balloonLoop, 1400);
+  // bắn vài quả pháo hoa chào mừng
+  for (let i = 0; i < 4; i++) setTimeout(launchRocket, i * 400);
+  loop();
+}
+window.addEventListener('resize', () => {
+  resizeAll();
+  initStars();
+  initParticles();
+});
+init();
+</script>
+</body>
+</html>
